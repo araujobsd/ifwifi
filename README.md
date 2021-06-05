@@ -13,6 +13,10 @@ I felt bothered because I never remember the long and tedious command line to se
 ## How to build:
 * <b>cargo build --release</b>
 
+## Tested on:
+* Fedora Linux 34
+* Ubuntu 18.04
+
 ## License:
 <b>BSD 2-Clause "Simplified" License</b>
 
