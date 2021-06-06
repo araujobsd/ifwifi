@@ -3,6 +3,13 @@ name = "ifwifi"
 version = "1.0.0"
 edition = "2018"
 authors = ["Marcelo Araujo <araujobsdport@gmail.com>"]
+license = "BSD 2-Clause License"
+description = "Wifi cli tool wrapper for nmcli"
+readme = "README.md"
+homepage = "https://github.com/araujobsd/ifwifi/"
+repository = "https://github.com/araujobsd/ifwifi/"
+keywords = ["cli", "wifi", "nmcli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "2.31.2", features = ["yaml"] }
