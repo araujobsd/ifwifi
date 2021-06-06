@@ -14,7 +14,7 @@ I felt bothered because I never remember the long and tedious command line to se
 * <b>cargo build --release</b>
 
 ## Crates:
-[ifwifi crates](https://crates.io/crates/ifwifi)
+Crate published at: [https://crates.io/crates/ifwifi](https://crates.io/crates/ifwifi)
 
 ## Tested on:
 * Fedora Linux 34
