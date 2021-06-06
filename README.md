@@ -7,7 +7,7 @@ I felt bothered because I never remember the long and tedious command line to se
 * <b>ifwifi --interface IFACE --password PASSWORD --ssid SSID</b> - Set the wifi
 
 [logo]: https://raw.githubusercontent.com/araujobsd/ifwifi/main/gif/terminal.gif "Terminal example"
-<b>Termina example:</b>
+<b>Terminal example:</b>
 ![alt text][logo]
 
 ## How to build:
