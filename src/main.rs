@@ -1,4 +1,6 @@
-/*
+/*-
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  * BSD 2-Clause License
  *
  * Copyright (c) 2021, Marcelo Araujo <araujobsdport@gmail.com>
