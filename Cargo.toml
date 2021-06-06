@@ -15,5 +15,4 @@ categories = ["command-line-utilities"]
 clap = { version = "2.31.2", features = ["yaml"] }
 wifi-rs = { version = "0.1.0" }
 wifiscanner = "0.5.*"
-prettytable-rs = "0.8.0"
 colored = "2"
