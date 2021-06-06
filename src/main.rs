@@ -34,7 +34,6 @@ use std::process::exit;
 use wifi_rs::prelude::*;
 use wifi_rs::WiFi;
 use wifiscanner;
-use prettytable::{color, format, Attr, Cell, Row, Table};
 
 #[derive(Debug)]
 enum SignalMeasure {
