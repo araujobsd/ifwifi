@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use colored::*;
 use std::env;
 use std::io;
@@ -123,29 +123,48 @@ fn is_root() -> bool {
     }
 }
 
-fn main() -> Result<(), io::Error> {
+fn scan() -> Result<(), String> {
+    let networks = wifiscanner::scan().expect("Cannot scan network");
+    for network in networks {
+        scan_table_format(&network);
+    }
+
+    Ok(())
+}
+
+fn connect(matches: &ArgMatches) -> Result<(), String> {
+    // Get Password
+    let password = matches.value_of("password").unwrap();
+
+    // Get SSID
+    let ssid = matches.value_of("ssid").unwrap();
+
+    // Get Wireless Interface
+    let interface = matches.value_of("interface").unwrap();
+
+    let config = Some(Config {
+        interface: Some(interface),
+    });
+
+    let mut wifi = WiFi::new(config);
+    println!("Connection Status: {:?}", wifi.connect(ssid, password));
+
+    Ok(())
+}
+
+fn main() -> Result<(), String> {
     if is_root() == false {
         exit(2);
     }
 
-    let margs = env::args().nth(1).unwrap_or_default();
-    match margs.as_str() {
-        "scan" => {
-            let networks = wifiscanner::scan().expect("Cannot scan network");
-            for network in networks {
-                scan_table_format(&network);
-            }
-        }
-        "help" => {
-            println!("USAGE: \n\tifwifi help");
-            println!("\tifwifi scan");
-            println!("\tifwifi --interface <interface> --password <password> --ssid <ssid>");
-        }
-        _ => {
-            let matches = App::new("Wi-Fi")
-                .version("0.0.1")
-                .author("Tochukwu Nkemdilim")
-                .about("Connect to a Wi-Fi network 🎉")
+    let matches = App::new("ifwifi")
+        .version("1.0.2")
+        .author("\nAuthor: Marcelo Araujo <araujobsdport@gmail.com>")
+        .about("About: A simple wrapper over the long and tedious nmcli using wifiscanner")
+        .subcommand(SubCommand::with_name("scan").about("Scan wireless network"))
+        .subcommand(
+            SubCommand::with_name("connect")
+                .about("Connect to an Access Point")
                 .arg(
                     Arg::with_name("ssid")
                         .short("s")
@@ -172,26 +191,13 @@ fn main() -> Result<(), io::Error> {
                         .default_value("wlan0")
                         .takes_value(true)
                         .help("Wireless interface to connect through."),
-                )
-                .get_matches();
+                ),
+        )
+        .get_matches();
 
-            // Get Password
-            let password = matches.value_of("password").unwrap();
-
-            // Get SSID
-            let ssid = matches.value_of("ssid").unwrap();
-
-            // Get Wireless Interface
-            let interface = matches.value_of("interface").unwrap();
-
-            let config = Some(Config {
-                interface: Some(interface),
-            });
-
-            // let wifi = WiFi::new(ssid)?;
-            let mut wifi = WiFi::new(config);
-            println!("Connection Status: {:?}", wifi.connect(ssid, password));
-        }
+    match matches.subcommand() {
+        ("scan", Some(..)) => scan(),
+        ("connect", Some(m)) => connect(m),
+        _ => Ok(()),
     }
-    Ok(())
 }
