@@ -31,8 +31,8 @@
 use clap::{App, Arg, ArgMatches, SubCommand};
 use colored::*;
 use std::env;
-use std::io;
 use std::process::exit;
+use std::process::Command;
 use wifi_rs::prelude::*;
 use wifi_rs::WiFi;
 use wifiscanner;
@@ -52,13 +52,24 @@ fn scan_table_format(network_info: &wifiscanner::Wifi) {
     let signal_level =
         dBm_signal_measure(network_info.signal_level.parse::<f32>().unwrap_or_default());
 
-    print!(
-        "{} \t{:15} {:10} {:4}",
-        network_info.mac,
-        network_info.ssid.yellow().bold(),
-        network_info.channel.white().bold(),
-        network_info.signal_level
-    );
+    if is_connected(&network_info.ssid) == true {
+        print!(
+            "{} {} \t{:15} {:10} {:4}",
+            "*".green().bold().blink(),
+            network_info.mac,
+            network_info.ssid.yellow().bold(),
+            network_info.channel.white().bold(),
+            network_info.signal_level
+        );
+    } else {
+        print!(
+            "  {} \t{:15} {:10} {:4}",
+            network_info.mac,
+            network_info.ssid.yellow().bold(),
+            network_info.channel.white().bold(),
+            network_info.signal_level
+        );
+    }
 
     match signal_level {
         SignalMeasure::Maximum => {
@@ -85,6 +96,26 @@ fn scan_table_format(network_info: &wifiscanner::Wifi) {
     };
 
     println!("{}", network_info.security);
+}
+
+fn is_connected(ssid: &String) -> bool {
+    let nmcli = Command::new("nmcli")
+        .args(&["-t", "-f", "active,ssid", "dev", "wifi"])
+        .output()
+        .expect("failed to run nmcli");
+
+    let ssid_comp: String = "yes:".to_owned() + ssid;
+    let mut output = String::from_utf8_lossy(&nmcli.stdout);
+    let output = output.split('\n').take(1).collect::<Vec<_>>()[0];
+
+    if output.to_string().trim().starts_with("yes") {
+        if ssid_comp.eq(&output.to_string().trim()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    false
 }
 
 fn dBm_signal_measure(signal: f32) -> SignalMeasure {
