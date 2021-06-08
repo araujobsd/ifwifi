@@ -189,7 +189,7 @@ fn main() -> Result<(), String> {
     }
 
     let matches = App::new("ifwifi")
-        .version("1.0.2")
+        .version("1.0.3")
         .author("\nAuthor: Marcelo Araujo <araujobsdport@gmail.com>")
         .about("About: A simple wrapper over the long and tedious nmcli using wifiscanner")
         .subcommand(SubCommand::with_name("scan").about("Scan wireless network"))
