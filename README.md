@@ -4,7 +4,7 @@ I felt bothered because I never remember the long and tedious command line to se
 ## Command line:
 * <b>ifwifi help</b> - Help menu with the few options provided by this tool
 * <b>ifwifi scan</b> - It will scan the wifi available in your area
-* <b>ifwifi --interface IFACE --password PASSWORD --ssid SSID</b> - Set the wifi
+* <b>ifwifi connect --interface IFACE --password PASSWORD --ssid SSID</b> - Set the wifi
 
 [logo]: https://raw.githubusercontent.com/araujobsd/ifwifi/main/gif/terminal.gif "Terminal example"
 <b>Terminal example:</b>
