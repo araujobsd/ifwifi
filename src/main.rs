@@ -105,7 +105,7 @@ fn is_connected(ssid: &String) -> bool {
         .expect("failed to run nmcli");
 
     let ssid_comp: String = "yes:".to_owned() + ssid;
-    let mut output = String::from_utf8_lossy(&nmcli.stdout);
+    let output = String::from_utf8_lossy(&nmcli.stdout);
     let output = output.split('\n').take(1).collect::<Vec<_>>()[0];
 
     if output.to_string().trim().starts_with("yes") {
@@ -118,6 +118,7 @@ fn is_connected(ssid: &String) -> bool {
     false
 }
 
+#[allow(non_snake_case)]
 fn dBm_signal_measure(signal: f32) -> SignalMeasure {
     if signal >= -30.00 {
         return SignalMeasure::Maximum;
