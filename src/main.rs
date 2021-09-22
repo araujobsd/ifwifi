@@ -35,7 +35,6 @@ use std::process::exit;
 use std::process::Command;
 use wifi_rs::prelude::*;
 use wifi_rs::WiFi;
-use wifiscanner;
 
 #[derive(Debug)]
 enum SignalMeasure {
@@ -52,7 +51,7 @@ fn scan_table_format(network_info: &wifiscanner::Wifi) {
     let signal_level =
         dBm_signal_measure(network_info.signal_level.parse::<f32>().unwrap_or_default());
 
-    if is_connected(&network_info.ssid) == true {
+    if is_connected(&network_info.ssid) {
         print!(
             "{} {} \t{:15} {:10} {:4}",
             "*".green().bold().blink(),
@@ -98,43 +97,37 @@ fn scan_table_format(network_info: &wifiscanner::Wifi) {
     println!("{}", network_info.security);
 }
 
-fn is_connected(ssid: &String) -> bool {
+fn is_connected(ssid: &str) -> bool {
     let nmcli = Command::new("nmcli")
         .args(&["-t", "-f", "active,ssid", "dev", "wifi"])
         .output()
         .expect("failed to run nmcli");
 
     let ssid_comp: String = "yes:".to_owned() + ssid;
-    let mut output = String::from_utf8_lossy(&nmcli.stdout);
+    let output = String::from_utf8_lossy(&nmcli.stdout);
     let output = output.split('\n').take(1).collect::<Vec<_>>()[0];
 
-    if output.to_string().trim().starts_with("yes") {
-        if ssid_comp.eq(&output.to_string().trim()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    false
+    output.to_string().trim().starts_with("yes")
+        && ssid_comp.eq(&output.to_string().trim())
 }
 
+#[allow(non_snake_case)]
 fn dBm_signal_measure(signal: f32) -> SignalMeasure {
     if signal >= -30.00 {
-        return SignalMeasure::Maximum;
-    } else if signal < -30.00 && signal >= -50.00 {
-        return SignalMeasure::Excellent;
-    } else if signal < -50.00 && signal >= -60.00 {
-        return SignalMeasure::Good;
-    } else if signal < -60.00 && signal >= -67.00 {
-        return SignalMeasure::Reliable;
-    } else if signal < -67.00 && signal >= -70.00 {
-        return SignalMeasure::Weak;
-    } else if signal < -70.00 && signal >= -80.00 {
-        return SignalMeasure::Unreliable;
-    } else if signal < -80.00 {
-        return SignalMeasure::Bad;
+        SignalMeasure::Maximum
+    } else if signal >= -50.00 {
+        SignalMeasure::Excellent
+    } else if signal >= -60.00 {
+        SignalMeasure::Good
+    } else if signal >= -67.00 {
+        SignalMeasure::Reliable
+    } else if signal >= -70.00 {
+        SignalMeasure::Weak
+    } else if signal >= -80.00 {
+        SignalMeasure::Unreliable
+    } else {
+        SignalMeasure::Bad
     }
-    return SignalMeasure::Bad;
 }
 
 fn is_root() -> bool {
@@ -184,7 +177,7 @@ fn connect(matches: &ArgMatches) -> Result<(), String> {
 }
 
 fn main() -> Result<(), String> {
-    if is_root() == false {
+    if !is_root() {
         exit(2);
     }
 
