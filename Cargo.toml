@@ -13,6 +13,6 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "2.31.2", features = ["yaml"] }
-wifi-rs = { version = "0.1.0" }
+wifi-rs = { version = "0.2.2" }
 wifiscanner = "0.5.*"
 colored = "2"
