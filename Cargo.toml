@@ -1,6 +1,6 @@
 [package]
 name = "ifwifi"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2018"
 authors = ["Marcelo Araujo <araujobsdport@gmail.com>"]
 license = "BSD-2-Clause"
@@ -13,6 +13,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+clap_complete_command = { version = "0.4" }
 wifi-rs = { version = "0.2.2" }
 wifiscanner = "0.5.*"
 colored = "2"
