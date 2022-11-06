@@ -17,3 +17,4 @@ clap_complete_command = { version = "0.4" }
 wifi-rs = { version = "0.2.2" }
 wifiscanner = "0.5.*"
 colored = "2"
+prettytable-rs = "0.9.0"
