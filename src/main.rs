@@ -30,6 +30,7 @@
 
 use clap::{CommandFactory, Parser, Subcommand};
 use colored::*;
+use prettytable::{format, row, Row, Table};
 use std::env;
 use std::process::exit;
 use std::process::Command;
@@ -80,54 +81,61 @@ enum SignalMeasure {
     Bad,
 }
 
-fn scan_table_format(network_info: &wifiscanner::Wifi) {
+fn scan_table_format(network_info: &wifiscanner::Wifi) -> Row {
     let signal_level =
-        dBm_signal_measure(network_info.signal_level.parse::<f32>().unwrap_or_default());
+        match dBm_signal_measure(network_info.signal_level.parse::<f32>().unwrap_or_default()) {
+            SignalMeasure::Maximum => {
+                format!(
+                    "{} ({})",
+                    "Maximum".green().bold().blink(),
+                    network_info.signal_level
+                )
+            }
+            SignalMeasure::Excellent => {
+                format!(
+                    "{} ({})",
+                    "Excellent".green().bold().blink(),
+                    network_info.signal_level
+                )
+            }
+            SignalMeasure::Good => {
+                format!("{} ({})", "Good".green().blink(), network_info.signal_level)
+            }
+            SignalMeasure::Reliable => {
+                format!(
+                    "{} ({})",
+                    "Reliable".yellow().bold().blink(),
+                    network_info.signal_level
+                )
+            }
+            SignalMeasure::Weak => {
+                format!("{} ({})", "Weak".yellow(), network_info.signal_level)
+            }
+            SignalMeasure::Unreliable => {
+                format!("{} ({})", "Unreliable".red(), network_info.signal_level)
+            }
+            SignalMeasure::Bad => {
+                format!("{} ({})", "Bad".red().bold(), network_info.signal_level)
+            }
+        };
 
     if is_connected(&network_info.ssid) {
-        print!(
-            "{} {} \t{:15} {:10} {:4}",
-            "*".green().bold().blink(),
-            network_info.mac,
+        row![
+            format!("{} {}", "*".green().bold().blink(), network_info.mac),
             network_info.ssid.yellow().bold(),
             network_info.channel.white().bold(),
-            network_info.signal_level
-        );
+            signal_level,
+            network_info.security
+        ]
     } else {
-        print!(
-            "  {} \t{:15} {:10} {:4}",
+        row![
             network_info.mac,
             network_info.ssid.yellow().bold(),
             network_info.channel.white().bold(),
-            network_info.signal_level
-        );
+            signal_level,
+            network_info.security
+        ]
     }
-
-    match signal_level {
-        SignalMeasure::Maximum => {
-            print!("\t{}", "Maximum".green().bold().blink())
-        }
-        SignalMeasure::Excellent => {
-            print!("\t{}", "Excellent".green().bold().blink())
-        }
-        SignalMeasure::Good => {
-            print!("\t{}", "Good".green().blink())
-        }
-        SignalMeasure::Reliable => {
-            print!("\t{}", "Reliable".yellow().bold().blink())
-        }
-        SignalMeasure::Weak => {
-            print!("\t{}", "Weak".yellow())
-        }
-        SignalMeasure::Unreliable => {
-            print!("\t{}", "Unreliable".red())
-        }
-        SignalMeasure::Bad => {
-            print!("\t{}", "Bad".red().bold())
-        }
-    };
-
-    println!("{}", network_info.security);
 }
 
 fn is_connected(ssid: &str) -> bool {
@@ -181,9 +189,14 @@ fn is_root() -> bool {
 
 fn scan() -> Result<(), String> {
     let networks = wifiscanner::scan().expect("Cannot scan network");
+    let mut networks_table = Table::new();
+    networks_table.set_format(*format::consts::FORMAT_CLEAN);
+    networks_table.add_row(row!["Mac", "SSID", "Channel", "Signal", "Security"]);
+
     for network in networks {
-        scan_table_format(&network);
+        networks_table.add_row(scan_table_format(&network));
     }
+    networks_table.printstd();
 
     Ok(())
 }
