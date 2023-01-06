@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use colored::*;
 use std::env;
 use std::process::exit;
@@ -60,6 +60,13 @@ enum Commands {
     },
     /// Scan wireless network
     Scan {},
+
+    /// Generate shell completions
+    Completions {
+        /// The shell to generate the completions for
+        #[arg(value_enum)]
+        shell: clap_complete_command::Shell,
+    },
 }
 
 #[derive(Debug)]
@@ -211,6 +218,11 @@ fn main() -> Result<(), String> {
                 exit(2);
             }
             connect(ssid, password, interface)
+        }
+        // e.g. `$ cli completions bash`
+        Some(Commands::Completions { shell }) => {
+            shell.generate(&mut Cli::command(), &mut std::io::stdout());
+            Ok(())
         }
         None => Ok(()),
     }
