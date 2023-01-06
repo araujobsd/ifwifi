@@ -28,13 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{Parser, Subcommand};
 use colored::*;
 use std::env;
 use std::process::exit;
 use std::process::Command;
 use wifi_rs::prelude::*;
 use wifi_rs::WiFi;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None, arg_required_else_help(true))]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Connect to an Access Point
+    Connect {
+        /// SSID of wireless network
+        #[arg(short, long)]
+        ssid: String,
+
+        /// Password of the wireless network
+        #[arg(short, long)]
+        password: String,
+
+        /// Wireless interface to connect through
+        #[arg(short, long, default_value = "wlan0")]
+        interface: String,
+    },
+    /// Scan wireless network
+    Scan {},
+}
 
 #[derive(Debug)]
 enum SignalMeasure {
@@ -107,8 +133,7 @@ fn is_connected(ssid: &str) -> bool {
     let output = String::from_utf8_lossy(&nmcli.stdout);
     let output = output.split('\n').take(1).collect::<Vec<_>>()[0];
 
-    output.to_string().trim().starts_with("yes")
-        && ssid_comp.eq(&output.to_string().trim())
+    output.to_string().trim().starts_with("yes") && ssid_comp.eq(&output.to_string().trim())
 }
 
 #[allow(non_snake_case)]
@@ -156,16 +181,7 @@ fn scan() -> Result<(), String> {
     Ok(())
 }
 
-fn connect(matches: &ArgMatches) -> Result<(), String> {
-    // Get Password
-    let password = matches.value_of("password").unwrap();
-
-    // Get SSID
-    let ssid = matches.value_of("ssid").unwrap();
-
-    // Get Wireless Interface
-    let interface = matches.value_of("interface").unwrap();
-
+fn connect(ssid: &str, password: &str, interface: &str) -> Result<(), String> {
     let config = Some(Config {
         interface: Some(interface),
     });
@@ -177,51 +193,25 @@ fn connect(matches: &ArgMatches) -> Result<(), String> {
 }
 
 fn main() -> Result<(), String> {
-    if !is_root() {
-        exit(2);
-    }
+    let cli = Cli::parse();
 
-    let matches = App::new("ifwifi")
-        .version("1.0.3")
-        .author("\nAuthor: Marcelo Araujo <araujobsdport@gmail.com>")
-        .about("About: A simple wrapper over the long and tedious nmcli using wifiscanner")
-        .subcommand(SubCommand::with_name("scan").about("Scan wireless network"))
-        .subcommand(
-            SubCommand::with_name("connect")
-                .about("Connect to an Access Point")
-                .arg(
-                    Arg::with_name("ssid")
-                        .short("s")
-                        .long("ssid")
-                        .multiple(false)
-                        .required(true)
-                        .takes_value(true)
-                        .help("SSID of wireless network."),
-                )
-                .arg(
-                    Arg::with_name("password")
-                        .short("p")
-                        .long("password")
-                        .multiple(false)
-                        .required(true)
-                        .takes_value(true)
-                        .help("Password of the wireless network."),
-                )
-                .arg(
-                    Arg::with_name("interface")
-                        .short("i")
-                        .long("interface")
-                        .multiple(false)
-                        .default_value("wlan0")
-                        .takes_value(true)
-                        .help("Wireless interface to connect through."),
-                ),
-        )
-        .get_matches();
-
-    match matches.subcommand() {
-        ("scan", Some(..)) => scan(),
-        ("connect", Some(m)) => connect(m),
-        _ => Ok(()),
+    match &cli.command {
+        Some(Commands::Scan {}) => {
+            if !is_root() {
+                exit(2);
+            }
+            scan()
+        }
+        Some(Commands::Connect {
+            ssid,
+            password,
+            interface,
+        }) => {
+            if !is_root() {
+                exit(2);
+            }
+            connect(ssid, password, interface)
+        }
+        None => Ok(()),
     }
 }
